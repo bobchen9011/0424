@@ -1,6 +1,6 @@
 import SwiftUI
 import CoreBluetooth
-import Charts
+import SwiftUICharts
 
 class BluetoothManagerr: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     weak var delegate: BluetoothManagerDelegate?
@@ -69,74 +69,40 @@ protocol BluetoothManagerDelegate: AnyObject {
 }
 
 class AnalysisViewModel: ObservableObject, BluetoothManagerDelegate {
-    @Published var emgValues: [String] = []
-    @Published var status: String = ""
-    @Published var countdown: Int = 0
+    @Published var emgValues: [(timeStamp: Date, value: String)] = []
+    @Published var isCapturing: Bool = false
     
-    private var bluetoothManagerr: BluetoothManagerr
-    private var isCapturing: Bool = false
-    private var captureTimer: Timer?
-    private let captureDuration: TimeInterval = 10 // 10秒
+    private var bluetoothManager: BluetoothManagerr
     
     init() {
-        bluetoothManagerr = BluetoothManagerr()
-        bluetoothManagerr.delegate = self
+        bluetoothManager = BluetoothManagerr()
+        bluetoothManager.delegate = self
     }
     
     func didReceiveEMGString(_ emgString: String) {
         if isCapturing {
             DispatchQueue.main.async {
-                self.emgValues.append(emgString)
-                self.updateStatus(with: emgString)
-            }
-        }
-    }
-    
-    private func updateStatus(with emgString: String) {
-        let pattern = "\\d+" // 只匹配數字字符
-        if let range = emgString.range(of: pattern, options: .regularExpression) {
-            let emgValueString = emgString[range]
-            if let emgValue = Int(emgValueString) {
-                print("轉換成功：\(emgValue)")
-                if emgValue < 340 {
-                    status = "收縮"
-                } else if emgValue <= 362 {
-                    status = "平均"
-                } else {
-                    status = "緊繃"
+                let timeStamp = Date()
+                self.emgValues.append((timeStamp, emgString))
+                
+                // 只保留最新的數據
+                if self.emgValues.count > 100 {
+                    self.emgValues.removeFirst(self.emgValues.count - 100)
                 }
-            } else {
-                print("轉換失敗")
-                status = "轉換錯誤"
             }
-        } else {
-            print("不是數字字符")
-            status = "轉換錯誤"
         }
     }
     
     func startCapture() {
         emgValues = []
         isCapturing = true
-        countdown = Int(captureDuration)
-        
-        // 啟動計時器，在指定時間結束後停止擷取
-        captureTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
-            self.countdown -= 1
-            
-            if self.countdown <= 0 {
-                timer.invalidate()
-                self.stopCapture()
-            }
-        }
     }
     
     func stopCapture() {
         isCapturing = false
-        captureTimer?.invalidate()
-        captureTimer = nil
     }
 }
+
 
 struct AnalysisView: View {
     @StateObject private var viewModel: AnalysisViewModel
@@ -147,10 +113,6 @@ struct AnalysisView: View {
     
     var body: some View {
         VStack {
-            Text("EMG 值")
-                .font(.title)
-                .padding()
-            
             VStack {
                 Button(action: {
                     viewModel.startCapture()
@@ -164,20 +126,33 @@ struct AnalysisView: View {
                 })
                 .padding()
                 
-                List(viewModel.emgValues, id: \.self) { emgValue in
-                    Text("EMG 值：\(emgValue)")
-                        .font(.system(size: 16))
+                LineView(data: viewModel.emgValues.sorted(by: { $0.timeStamp < $1.timeStamp }).prefix(100).map { Double($0.value) ?? 0 },
+                         title: "EMG 折線圖",
+                         style: ChartStyle(backgroundColor: .white, accentColor: .blue, gradientColor: GradientColor(start: .blue, end: .white), textColor: .black, legendTextColor: .blue, dropShadowColor: .blue))
+                    .frame(height: 300)
+                    .padding()
+                    
+                Spacer()
+                Text("正在擷取 EMG 值：\(viewModel.isCapturing ? "是" : "否")")
+                    .font(.headline)
+                    .padding()
+                
+                // 登出按鈕
+                Button(action: {
+                    // 在這裡處理登出操作
+                    viewModel.stopCapture() // 停止擷取 EMG 值
+                    // 其他需要處理的登出操作...
+                }) {
+                    Text("登出")
+                        .font(.headline)
                         .padding()
+                        .foregroundColor(.white)
+                        .background(Color.red)
+                        .cornerRadius(10)
                 }
-                
-                Text("狀態：\(viewModel.status)")
-                    .font(.headline)
-                    .padding()
-                
-                Text("倒數計時：\(viewModel.countdown) 秒")
-                    .font(.headline)
-                    .padding()
+                .padding(.bottom)
             }
+            Spacer()
         }
     }
 }
