@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseDatabaseInternal
 import CoreBluetooth
 import SwiftUICharts
 
@@ -60,6 +61,9 @@ class BluetoothManagerr: NSObject, CBCentralManagerDelegate, CBPeripheralDelegat
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if let data = characteristic.value, let emgString = String(data: data, encoding: .utf8) {
             delegate?.didReceiveEMGString(emgString)
+            // 將收到的 EMG 值寫入 Firebase
+            let ref = Database.database().reference()
+            ref.child("emgValues").childByAutoId().setValue(emgString)
         }
     }
 }

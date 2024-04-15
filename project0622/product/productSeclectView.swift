@@ -14,9 +14,9 @@ struct productSeclectView: View {
     var body: some View {
         VStack {
             List {
-                NavigationLink(destination: productView()) {
+                NavigationLink(destination: productView3()) {
                     HStack {
-                        Image("800x (3)")
+                        Image("小腿按摩器")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 120, height: 120)
@@ -26,7 +26,7 @@ struct productSeclectView: View {
                                     .stroke(Color.gray, lineWidth: 1)
                             )
                         Spacer()
-                        Text("按摩槍")
+                        Text("小腿按摩器")
                             .foregroundColor(.primary)
                             .font(.headline)
                             .padding(.leading, 10)

@@ -14,7 +14,7 @@ struct productView3: View {
     var body: some View {
         
             List {
-                NavigationLink(destination: introduceProductFeaturesView()) {
+                NavigationLink(destination: introduceProductFeaturesView3()) {
                     HStack{
                         Image("小腿按摩器")
                             .resizable()

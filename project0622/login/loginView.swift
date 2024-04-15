@@ -12,7 +12,8 @@ struct LoginView: View {
     @State var showCreateView = false
     @State var showProfile = false
 
-    
+    @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
+
     
     var body: some View {
         ScrollView {
@@ -100,10 +101,10 @@ struct LoginView: View {
             }
             .padding(30)
             .background(Color(.systemBackground))
-            .navigationBarHidden(true) // 隱藏導航欄
+            .navigationBarHidden(false) // 隱藏導航欄
         }
         .background(
-            NavigationLink(destination: aboutUserView(), isActive: $showProfile) {
+            NavigationLink(destination: aboutAppView(), isActive: $showProfile) {
                 EmptyView()
             }
         )
@@ -120,10 +121,12 @@ struct LoginView: View {
                     print("登入成功: \(user.uid)")
                     self.statusMessage = "登入成功"
                     self.showProfile = true
+                    self.isLoggedIn = true
                 }
             }
         }
     }
+
 }
 
 

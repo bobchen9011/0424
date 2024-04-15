@@ -47,7 +47,36 @@ struct ContentView_Previews: PreviewProvider {
 
 struct HomeView: View {
     var body: some View {
-        RiveViewModel(fileName: "shapes").view()
-            .ignoresSafeArea()
+        VStack(alignment: .center) {
+            Spacer()
+            NavigationLink {
+                ledControl()
+                
+            } label: {
+                Text("模組控制")
+                    .customFont(.headline)
+                    .padding(20)
+                    .frame(width: 250, height: 200)
+                    .background(Color(hex: "008080"))
+                    .foregroundColor(.white)
+                .shadow(color: Color(hex: "00ffff").opacity(0.5), radius: 20, x: 0, y: 10)
+                .cornerRadius(20)
+            }
+            Spacer()
+            NavigationLink {
+                recentView()
+            } label: {
+                Text("歷史肌肉狀態紀錄")
+                    .customFont(.headline)
+                    .padding(20)
+                    .frame(width: 250, height: 200)
+                    .background(Color(hex: "008080"))
+                    .foregroundColor(.white)
+                .shadow(color: Color(hex: "00ffff").opacity(0.5), radius: 20, x: 0, y: 10)
+                .cornerRadius(20)
+            }
+            Spacer()
+        }
+        .ignoresSafeArea()
     }
 }
